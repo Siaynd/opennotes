@@ -1,0 +1,42 @@
+name: Deploy Hexo Blog to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # 当 main 分支有新的提交时触发
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest # 使用最新的 Ubuntu 运行环境
+
+    # 分配权限，允许写入 gh-pages 分支
+    permissions:
+      contents: write # 允许写入仓库内容，以便部署到 gh-pages 分支
+
+    steps:
+      - name: Checkout repository # 检出你的博客仓库代码
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js # 设置 Node.js 环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x' # **已更新为 24.x 版本**
+
+      - name: Install Hexo and dependencies # 安装 Hexo 及其他依赖
+        run: |
+          npm install -g hexo-cli # 全局安装 Hexo CLI
+          # npm install # 安装 package.json 中定义的依赖
+
+      - name: Install Hexo Fluid Theme # 安装 Fluid 主题
+        run: npm install --save hexo-theme-fluid
+
+      - name: Generate Hexo public files # 生成 Hexo 静态文件
+        run: hexo generate
+
+      - name: Deploy to GitHub Pages # 部署到 gh-pages 分支
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }} # 使用 GitHub 提供的 token 进行认证
+          publish_dir: ./public # 指定 Hexo 生成的静态文件目录
+          publish_branch: gh-pages # 部署目标分支
+          # cname: your-custom-domain.com # 如果你使用自定义域名，请取消注释并替换为你的域名
